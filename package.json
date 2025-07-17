@@ -12,7 +12,6 @@
     "deploy": "gh-pages -d dist",
     "start": "vite preview"
   },
-  "homepage": "https://mrdeepakkushwah.github.io/MyShop",
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "axios": "^1.9.0",
