@@ -9,3 +9,7 @@
 
 [context.production.environment]
   NODE_ENV = "production"
+
+  [build.environment]
+NODE_VERSION = "20"
+
