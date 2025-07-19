@@ -1,58 +1,87 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import axios from "axios";
 
-// Create context with default fallback to avoid undefined errors
-export const AuthContext = createContext({
+// Initial context structure
+const defaultAuthContext = {
     user: null,
     token: null,
     login: () => { },
     logout: () => { },
-});
+    loading: true,
+};
+
+export const AuthContext = createContext(defaultAuthContext);
+
+// Optional: Export reusable hook
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    // Load user/token from localStorage on first mount
     useEffect(() => {
-        try {
-            const storedUser = localStorage.getItem("user");
+        const initializeAuth = async () => {
             const storedToken = localStorage.getItem("token");
 
-            if (storedUser && storedToken) {
-                setUser(JSON.parse(storedUser));
-                setToken(storedToken);
+            if (!storedToken) {
+                setLoading(false);
+                return;
             }
-        } catch (error) {
-            console.error("Failed to restore auth data from localStorage:", error);
-        }
+
+            setToken(storedToken);
+
+            try {
+                const res = await axios.get("https://myshop-72k8.onrender.com/me", {
+                    headers: { Authorization: `Bearer ${storedToken}` },
+                    withCredentials: true,
+                });
+
+                if (res.data?.user) {
+                    setUser(res.data.user);
+                    localStorage.setItem("user", JSON.stringify(res.data.user));
+                } else {
+                    logout();
+                }
+            } catch (err) {
+                console.error("Auth revalidation failed:", err?.response?.data || err.message);
+                logout();
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        initializeAuth();
     }, []);
 
-    // Login and store credentials
-    const login = (userData, token) => {
+    const login = (userData, newToken) => {
         try {
             localStorage.setItem("user", JSON.stringify(userData));
-            localStorage.setItem("token", token);
+            localStorage.setItem("token", newToken);
             setUser(userData);
-            setToken(token);
-        } catch (error) {
-            console.error("Login error:", error);
+            setToken(newToken);
+        } catch (err) {
+            console.error("Login failed:", err);
         }
     };
 
-    // Logout and clear credentials
-    const logout = () => {
+    const logout = async () => {
         try {
+            await axios.get("https://myshop-72k8.onrender.com/logout", {
+                withCredentials: true,
+            });
+        } catch (err) {
+            console.warn("Server logout failed:", err?.message || err);
+        } finally {
             localStorage.removeItem("user");
             localStorage.removeItem("token");
             setUser(null);
             setToken(null);
-        } catch (error) {
-            console.error("Logout error:", error);
         }
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, login, logout }}>
+        <AuthContext.Provider value={{ user, token, login, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );

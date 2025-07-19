@@ -1,12 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { AuthContext } from "../context/AuthContext"; // make sure path is correct
 
 const Login = () => {
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({ email: "", password: "", role: "" });
+    const { login: loginContext } = useContext(AuthContext);
+
+    const [formData, setFormData] = useState({
+        email: "",
+        password: "",
+        role: "",
+    });
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
@@ -33,24 +40,31 @@ const Login = () => {
 
             const { token, user } = res.data;
 
-            if (token) localStorage.setItem("token", token);
-            if (user) {
-                localStorage.setItem("user", JSON.stringify(user));
-                if (user.role) localStorage.setItem("role", user.role);
+            if (token && user) {
+                loginContext(user, token); // context login
+                toast.success("Login successful!");
+            } else {
+                throw new Error("Invalid login response");
             }
-
-            toast.success("Login successful!");
-
-            setTimeout(() => {
-                navigate(user?.role === "admin" ? "/admin" : "/user/dashboard");
-            }, 1000);
         } catch (err) {
-            const msg = err.response?.data?.message || "Login failed. Check your credentials or try again later.";
+            const msg =
+                err.response?.data?.message ||
+                "Login failed. Check your credentials or try again later.";
             toast.error(msg);
         } finally {
             setLoading(false);
         }
     };
+
+    // ✅ Redirect after successful login
+    useEffect(() => {
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        if (storedUser?.role === "admin") {
+            navigate("/admin");
+        } else if (storedUser?.role === "user") {
+            navigate("/user/dashboard");
+        }
+    }, [navigate]);
 
     return (
         <>
@@ -110,7 +124,9 @@ const Login = () => {
                                 required
                                 className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-800 dark:text-white transition"
                             >
-                                <option value="" disabled>Choose a role</option>
+                                <option value="" disabled>
+                                    Choose a role
+                                </option>
                                 <option value="user">User</option>
                                 <option value="admin">Admin</option>
                             </select>
@@ -121,8 +137,8 @@ const Login = () => {
                             type="submit"
                             disabled={loading}
                             className={`w-full py-2 px-4 text-white rounded-lg font-semibold text-lg transition ${loading
-                                ? "bg-indigo-300 cursor-not-allowed"
-                                : "bg-indigo-600 hover:bg-indigo-700"
+                                    ? "bg-indigo-300 cursor-not-allowed"
+                                    : "bg-indigo-600 hover:bg-indigo-700"
                                 }`}
                         >
                             {loading ? "Logging in..." : "Login"}
