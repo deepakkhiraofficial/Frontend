@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const AdminUsers = () => {
     const [users, setUsers] = useState([]);
@@ -11,12 +12,18 @@ const AdminUsers = () => {
     const limit = 10;
 
     const fetchUsers = async () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            setError("Unauthorized. Please login.");
+            return;
+        }
+
         try {
             setLoading(true);
             const res = await axios.get(`https://myshop-72k8.onrender.com/users`, {
                 params: { search, page, limit },
                 headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    Authorization: `Bearer ${token}`,
                 },
             });
 
@@ -25,20 +32,33 @@ const AdminUsers = () => {
             setError("");
         } catch (err) {
             console.error(err);
-            setError("Failed to fetch users");
+            setError(err?.response?.data?.message || "Failed to fetch users");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDelete = async (id) => {
+        const confirmDelete = window.confirm("Are you sure you want to delete this user?");
+        if (!confirmDelete) return;
+
+        try {
+            const token = localStorage.getItem("token");
+            await axios.delete(`https://myshop-72k8.onrender.com/users/${id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            toast.success("User deleted successfully");
+            fetchUsers();
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to delete user");
         }
     };
 
     useEffect(() => {
         fetchUsers();
     }, [search, page]);
-
-    const handleDelete = (id) => {
-        // Placeholder logic
-        console.log("Delete user", id);
-    };
 
     return (
         <div className="p-6 bg-white dark:bg-gray-900 rounded-lg shadow-md">
@@ -47,7 +67,10 @@ const AdminUsers = () => {
             <input
                 type="text"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1); // Reset page on search change
+                }}
                 placeholder="Search users..."
                 className="w-full p-2 mb-4 border rounded dark:bg-gray-800 dark:text-white"
             />

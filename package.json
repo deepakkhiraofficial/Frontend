@@ -10,8 +10,7 @@
     "preview": "vite preview --host 0.0.0.0 --port 10000",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
-    "start": "vite preview",
-    "postinstall": "chmod +x ./node_modules/.bin/vite"
+    "start": "vite preview"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -33,7 +32,7 @@
     "recharts": "^2.15.3",
     "redux": "^5.0.1",
     "serve": "^14.2.4",
-    "vite": "^5.4.19" // ✅ moved from devDependencies to fix Vercel issue
+    "vite": "^5.4.19"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

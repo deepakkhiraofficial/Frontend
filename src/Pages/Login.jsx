@@ -12,7 +12,6 @@ const Login = () => {
     const [formData, setFormData] = useState({
         email: "",
         password: "",
-        role: "",
     });
     const [loading, setLoading] = useState(false);
 
@@ -23,11 +22,6 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (!formData.role) {
-            toast.error("Please select a role.");
-            return;
-        }
 
         setLoading(true);
 
@@ -110,28 +104,6 @@ const Login = () => {
                                 className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-800 dark:text-white transition"
                             />
                         </div>
-
-                        {/* Role */}
-                        <div>
-                            <label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Select Role
-                            </label>
-                            <select
-                                id="role"
-                                name="role"
-                                value={formData.role}
-                                onChange={handleChange}
-                                required
-                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-800 dark:text-white transition"
-                            >
-                                <option value="" disabled>
-                                    Choose a role
-                                </option>
-                                <option value="user">User</option>
-                                <option value="admin">Admin</option>
-                            </select>
-                        </div>
-
                         {/* Submit Button */}
                         <button
                             type="submit"
