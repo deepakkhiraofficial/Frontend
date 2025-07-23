@@ -20,16 +20,19 @@ const AdminUsers = () => {
 
         try {
             setLoading(true);
-            const res = await axios.get(`https://myshop-72k8.onrender.com/users`, {
+            const res = await axios.get(`https://myshop-72k8.onrender.com/admin/users`, {
                 params: { search, page, limit },
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
+            if (res.status === 200) {
+                toast.success(res.data.message)
+                setUsers(res.data.users || []);
+                setTotalPages(res.data.totalPages || 1);
+                setError("");
 
-            setUsers(res.data.users || []);
-            setTotalPages(res.data.totalPages || 1);
-            setError("");
+            }
         } catch (err) {
             console.error(err);
             setError(err?.response?.data?.message || "Failed to fetch users");
@@ -44,7 +47,8 @@ const AdminUsers = () => {
 
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`https://myshop-72k8.onrender.com/users/${id}`, {
+            await axios.delete(`https://myshop-72k8.onrender.com/admin/delete-user`, {
+                data: { userId: id },
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -52,7 +56,7 @@ const AdminUsers = () => {
             fetchUsers();
         } catch (err) {
             console.error(err);
-            toast.error("Failed to delete user");
+            toast.error(err?.response?.data?.message || "Failed to delete user");
         }
     };
 

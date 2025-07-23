@@ -19,7 +19,6 @@ const Login = () => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -36,7 +35,9 @@ const Login = () => {
 
             if (token && user) {
                 loginContext(user, token); // context login
+                localStorage.setItem("user", JSON.stringify(user));
                 toast.success("Login successful!");
+                navigate('/admin')
             } else {
                 throw new Error("Invalid login response");
             }
@@ -51,18 +52,22 @@ const Login = () => {
     };
 
     // ✅ Redirect after successful login
+    
     useEffect(() => {
         const storedUser = JSON.parse(localStorage.getItem("user"));
-        if (storedUser?.role === "admin") {
-            navigate("/admin");
-        } else if (storedUser?.role === "user") {
-            navigate("/user/dashboard");
+        if (storedUser) {
+            if (storedUser.role === "admin") {
+                navigate("/admin");
+            } else if (storedUser.role === "user") {
+                navigate("/user/dashboard");
+            }
         }
     }, [navigate]);
+    
 
     return (
         <>
-            <ToastContainer position="top-right" autoClose={2000} />
+            <ToastContainer  />
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-4">
                 <div className="w-full max-w-md bg-white dark:bg-gray-900 p-8 rounded-xl shadow-xl transition duration-300">
                     <h2 className="text-3xl font-bold text-center text-indigo-700 dark:text-indigo-400 mb-6">
@@ -104,7 +109,17 @@ const Login = () => {
                                 className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-800 dark:text-white transition"
                             />
                         </div>
+                        <div className="text-right text-sm mt-1">
+                            <Link
+                                to="/forget-password"
+                                className="text-indigo-600 hover:underline dark:text-indigo-400"
+                            >
+                                Forgot Password?
+                            </Link>
+                        </div>
+
                         {/* Submit Button */}
+
                         <button
                             type="submit"
                             disabled={loading}

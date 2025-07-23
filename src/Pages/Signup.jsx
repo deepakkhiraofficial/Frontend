@@ -55,12 +55,14 @@ const Signup = () => {
         "https://myshop-72k8.onrender.com/signup",
         formData
       );
-
+        console.log(response)
       if (response.data.message === "User Signup Successfully") {
         toast.success("Signup Successful!", {
           position: "top-right",
           autoClose: 1500,
         });
+        localStorage.setItem('token',response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
         setTimeout(() => {
           setFormData({
             name: "",
