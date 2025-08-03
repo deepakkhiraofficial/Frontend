@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import { FaShoppingCart, FaUserCircle } from "react-icons/fa";
 import "react-toastify/dist/ReactToastify.css";
+import { useDispatch } from "react-redux";
+import { logout } from "../redux/authSlice";
 
 import ProductList from "./ProductList";
 import Cart from "./Cart";
@@ -11,7 +13,7 @@ import Cart from "./Cart";
 const UserDashboard = () => {
     const navigate = useNavigate();
     const profileRef = useRef();
-
+    const dispatch = useDispatch();
     const [userName, setUserName] = useState("");
     const [products, setProducts] = useState([]);
     const [cart, setCart] = useState([]);
@@ -28,6 +30,14 @@ const UserDashboard = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    const handleLogout = () => {
+        dispatch(logout());
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+        localStorage.removeItem("cart"); // optional
+        navigate("/login");
+        window.location.reload();
+      };
     useEffect(() => {
         const storedUser = JSON.parse(localStorage.getItem("user"));
         if (!storedUser) return navigate("/login");
@@ -117,10 +127,10 @@ const UserDashboard = () => {
         navigate("/checkout", { state: { cart } });
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem("user");
-        navigate("/login");
-    };
+    // const handleLogout = () => {
+    //     localStorage.removeItem("user");
+    //     navigate("/login");
+    // };
 
     const handleNavigate = (path) => {
         setProfileOpen(false);

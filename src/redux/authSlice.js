@@ -1,41 +1,25 @@
-// authSlice.js
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-import { toast } from "react-toastify";
+import { createSlice } from "@reduxjs/toolkit";
 
-// Define async thunk for login
-export const loginUser = createAsyncThunk(
-  "/loginUser",
-  async (credentials, { rejectWithValue }) => {
-    try {
-      const { data } = await axios.post(
-        "https://myshop-72k8.onrender.com/login",
-        credentials
-      );
-      return data; // data must have user and token
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Login failed");
-    }
-  }
-);
+// Safely parse localStorage items
+let storedUser = null;
+let storedToken = null;
+try {
+  storedUser = JSON.parse(localStorage.getItem("user"));
+  storedToken =localStorage.getItem("token");
+} catch (e) {
+  console.error("Failed to load auth from localStorage", e);
+}
 
 const authSlice = createSlice({
   name: "auth",
   initialState: {
-    user: null,
-    token: null,
+    user: storedUser || null,
+    token: storedToken || null,
     loading: false,
-    error: null,
   },
   reducers: {
-    logout: (state) => {
-      state.user = null;
-      state.token = null;
-      state.loading = false;
-      state.error = null;
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-      toast.success("Logged out successfully!");
+    loginStart: (state) => {
+      state.loading = true;
     },
     setCredentials: (state, action) => {
       state.user = action.payload.user;
@@ -43,32 +27,29 @@ const authSlice = createSlice({
       localStorage.setItem("user", JSON.stringify(action.payload.user));
       localStorage.setItem("token", action.payload.token);
     },
-    updateUserState: (state, action) => {
-      state.user = action.payload;
-      localStorage.setItem("user", JSON.stringify(action.payload));
+    loginSuccess: (state, action) => {
+      state.loading = false;
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      localStorage.setItem("user", JSON.stringify(action.payload.user));
+      localStorage.setItem("token", action.payload.token);
     },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(loginUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        localStorage.setItem("user", JSON.stringify(action.payload.user));
-        localStorage.setItem("token", action.payload.token);
-        toast.success("Login successful!");
-      })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload || "Failed to login";
-        toast.error(state.error);
-      });
+    loginFailure: (state) => {
+      state.loading = false;
+    },
+    logout: (state) => {
+      state.user = null;
+      state.token = null;
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+    },
+    updateUserState: (state, action) => {
+      state.user = action.payload.user;
+      localStorage.setItem("user", JSON.stringify(action.payload.user));
+    },
   },
 });
 
-export const { logout, updateUserState,setCredentials } = authSlice.actions;
+export const { loginStart, loginSuccess, loginFailure, logout,setCredentials,updateUserState } =
+  authSlice.actions;
 export default authSlice.reducer;

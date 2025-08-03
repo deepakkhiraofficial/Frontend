@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
-import { toast, ToastContainer } from "react-toastify";
+import { toast} from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { updateUserState } from "../redux/authSlice"; // updated action import
 
@@ -30,8 +30,8 @@ const AdminSettings = () => {
         try {
             const token = localStorage.getItem("token");
 
-            const response = await axios.put(
-                "/api/admin/settings", // your real endpoint
+            const response = await axios.post(
+                "https://myshop-72k8.onrender.com/forget-password", // your real endpoint
                 data,
                 {
                     headers: {
@@ -53,14 +53,14 @@ const AdminSettings = () => {
                     });
                 }
             } else {
-                toast.error("Something went wrong. Try again.");
+                toast.error("Something went wrong. Try again.",error);
             }
         }
     };
 
     return (
         <div className="max-w-xl mx-auto mt-8 bg-white p-6 rounded-md shadow-md">
-            <ToastContainer position="top-right" autoClose={3000} />
+            {/* <ToastContainer position="top-right" autoClose={3000} /> */}
             <h1 className="text-2xl font-bold mb-4">Admin Settings</h1>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

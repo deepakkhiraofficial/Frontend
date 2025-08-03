@@ -15,7 +15,7 @@ const MyOrders = () => {
                 const response = await axios.get("https://myshop-72k8.onrender.com/getOrders", {
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                console.log(response);
+                // console.log(response);
                 setOrders(Array.isArray(response.data) ? response.data : response.data.orders || []);
             } catch (err) {
                 console.error("Order fetch error:", err);

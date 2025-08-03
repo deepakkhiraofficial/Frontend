@@ -1,44 +1,65 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
-import { ToastContainer } from "react-toastify"; // your thunk
-import { loginUser } from "../redux/authSlice";
-
+import {toast } from "react-toastify";
+import axios from "axios";
+import {
+    loginStart,
+    loginSuccess,
+    loginFailure,
+} from '../redux/authSlice';
 
 const Login = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-
-    // Extract auth state from redux store
-    const { user, loading, error } = useSelector((state) => state.auth);
+    const { user, loading } = useSelector((state) => state.auth);
 
     const [formData, setFormData] = useState({
         email: "",
         password: "",
     });
 
-    // Update form state
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    // Handle form submit: dispatch async thunk
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        dispatch(loginUser(formData));
+        dispatch(loginStart());
+
+        try {
+            const res = await axios.post(
+                "https://myshop-72k8.onrender.com/login",
+                formData,
+                { withCredentials: true }
+            );
+            const { token, user } = res.data;
+
+            if (user && token) {
+                dispatch(loginSuccess({ user, token }));
+                toast.success("Login successful!");
+                navigate(user.role === "admin" ? "/admin/dashboard" : "/user/dashboard");
+            } else {
+                throw new Error("Invalid login response");
+            }
+        } catch (err) {
+            dispatch(loginFailure());
+            toast.error(
+                err.response?.data?.message || "Login failed. Please try again."
+            );
+        }
     };
 
-    // Redirect on successful login
     useEffect(() => {
         if (user) {
-            navigate(user.role === "admin" ? "/admin/dashboard" : "/user/dashboard");
+            const redirectPath = user.role === "admin" ? "/admin/dashboard" : "/user/dashboard";
+            navigate(redirectPath);
         }
     }, [user, navigate]);
 
     return (
         <>
-            <ToastContainer />
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-4">
                 <div className="w-full max-w-md bg-white dark:bg-gray-900 p-8 rounded-xl shadow-xl transition duration-300">
                     <h2 className="text-3xl font-bold text-center text-indigo-700 dark:text-indigo-400 mb-6">
@@ -86,17 +107,14 @@ const Login = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`w-full py-2 px-4 text-white rounded-lg font-semibold text-lg transition ${loading ? "bg-indigo-300 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"
+                            className={`w-full py-2 px-4 text-white rounded-lg font-semibold text-lg transition ${loading
+                                    ? "bg-indigo-300 cursor-not-allowed"
+                                    : "bg-indigo-600 hover:bg-indigo-700"
                                 }`}
                         >
                             {loading ? "Logging in..." : "Login"}
                         </button>
                     </form>
-
-                    {/* Show error if any */}
-                    {error && (
-                        <p className="mt-4 text-center text-red-500 font-medium">{error}</p>
-                    )}
 
                     <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
                         Don’t have an account?{" "}
