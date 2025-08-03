@@ -16,10 +16,11 @@ const Customer = () => {
           ? { headers: { Authorization: `Bearer ${token}` } }
           : {};
         const response = await axios.get(
-          "https://myshop-72k8.onrender.com/admin/getorders",
+          "https://myshop-72k8.onrender.com/getOrderAdmin",
           config
         );
-        setOrders(response.data.orders || []);
+        console.log(response)
+        setOrders(response.data.orders|| []);
       } catch (err) {
         setError("Failed to load orders.");
       } finally {
