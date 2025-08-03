@@ -1,23 +1,27 @@
 import React, { useState, useEffect, useRef } from "react";
 import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
 import { FaBars, FaTimes, FaUserCircle } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import { logout } from "../redux/authSlice";
 
 const Navbar = () => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [userRole, setUserRole] = useState(null); // "admin" | "user" | null
 
-    const location = useLocation();
+    const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const user = useSelector((state) => state.auth.user);
+    const userRole = user?.role || null;
+
     const dropdownRef = useRef();
 
-    // Close dropdown on outside click
+    // Close dropdown if clicked outside
     useEffect(() => {
         function handleClickOutside(event) {
-            if (
-                dropdownRef.current &&
-                !dropdownRef.current.contains(event.target)
-            ) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setDropdownOpen(false);
             }
         }
@@ -25,22 +29,20 @@ const Navbar = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // Close dropdown & menu on navigation change
+    // Close menus on navigation
     useEffect(() => {
         setDropdownOpen(false);
         setMenuOpen(false);
-        const role = localStorage.getItem("role");
-        setUserRole(role);
     }, [location]);
 
     const toggleMenu = () => setMenuOpen((prev) => !prev);
     const toggleDropdown = () => setDropdownOpen((prev) => !prev);
 
     const handleLogout = () => {
-        localStorage.removeItem("role");
-        setUserRole(null);
+        dispatch(logout());
         setDropdownOpen(false);
         navigate("/login");
+        toast.success("Logged out successfully!");
     };
 
     const navLinkClass = ({ isActive }) =>
@@ -88,11 +90,7 @@ const Navbar = () => {
                                     strokeWidth="2"
                                     viewBox="0 0 24 24"
                                 >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M19 9l-7 7-7-7"
-                                    />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </button>
 

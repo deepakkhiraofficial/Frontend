@@ -7,9 +7,23 @@ const Unauthorized = () => {
 
     useEffect(() => {
         if (countdown === 0) {
-            navigate("/user/dashboard"); // 🔁 Redirect to user dashboard
+            const token = localStorage.getItem("token");
+            const role = localStorage.getItem("role");
+
+            if (!token) {
+                // If not logged in → go to login
+                navigate("/login");
+            } else if (role === "admin") {
+                navigate("/admin/dashboard");
+            } else if (role === "user") {
+                navigate("/user/dashboard");
+            } else {
+                // Default fallback
+                navigate("/login");
+            }
             return;
         }
+
         const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
         return () => clearTimeout(timer);
     }, [countdown, navigate]);

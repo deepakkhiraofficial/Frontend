@@ -3,6 +3,8 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../redux/authSlice";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -18,6 +20,7 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -61,8 +64,12 @@ const Signup = () => {
           position: "top-right",
           autoClose: 1500,
         });
-        localStorage.setItem('token',response.data.token);
+        dispatch(setCredentials({
+          user: response.data.user,
+          token: response.data.token,
+        }));
         localStorage.setItem("user", JSON.stringify(response.data.user));
+        localStorage.setItem("token", response.data.token);
         setTimeout(() => {
           setFormData({
             name: "",
@@ -74,13 +81,14 @@ const Signup = () => {
             dob: "",
             gender: "",
           });
-          navigate("/login");
+          navigate("/user/dashboard");
         }, 1600);
       } else {
         toast.error(response?.data?.message || "Signup failed.", {
           position: "top-right",
           autoClose: 3000,
         });
+        
       }
     } catch (error) {
       console.error("Signup error:", {

@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, NavLink, Outlet } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import { useDispatch } from "react-redux";
+import { logout } from "../redux/authSlice";
 import {
     LogOut,
     LayoutDashboard,
@@ -14,32 +18,26 @@ import {
 
 const Dashboard = () => {
     const navigate = useNavigate();
+    const user = useSelector((state) => state.auth.user);
     const [userName, setUserName] = useState("U");
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const dispatch = useDispatch(); 
 
     useEffect(() => {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-            try {
-                const parsedUser = JSON.parse(storedUser);
-                if (parsedUser.role !== "admin") {
-                    navigate("/login");
-                } else {
-                    setUserName(parsedUser.name?.charAt(0).toUpperCase() || "U");
-                }
-            } catch (err) {
-                console.error("Error parsing user data:", err);
-                localStorage.clear();
-                navigate("/login");
-            }
+        if (!user || user.role !== "admin") {
+            // Redirect if no user or not admin
+            navigate("/login", { replace: true });
         } else {
-            navigate("/login");
+            setUserName(user.name?.charAt(0).toUpperCase() || "U");
         }
-    }, [navigate]);
+    }, [user, navigate]);
 
     const handleLogout = () => {
-        localStorage.clear();
-        navigate("/login");
+        // Ideally dispatch logout action here if you have one
+
+        dispatch(logout());
+        toast.success("Logged out successfully!");
+        navigate("/login", { replace: true });
     };
 
     const navItems = [
@@ -59,8 +57,10 @@ const Dashboard = () => {
                 <div className="flex items-center space-x-3">
                     <button
                         aria-label="Toggle Sidebar"
+                        aria-expanded={isSidebarOpen}
+                        aria-controls="sidebar-menu"
                         className="md:hidden focus:outline-none"
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                        onClick={() => setIsSidebarOpen((open) => !open)}
                     >
                         {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
                     </button>
@@ -85,6 +85,7 @@ const Dashboard = () => {
             <div className="flex flex-1 flex-col md:flex-row">
                 {/* Sidebar */}
                 <nav
+                    id="sidebar-menu"
                     className={`bg-white md:block shadow-md w-full md:w-64 p-4 transition-all duration-300 md:static absolute z-40 ${isSidebarOpen ? "block" : "hidden"
                         }`}
                 >
@@ -110,7 +111,7 @@ const Dashboard = () => {
                 </nav>
 
                 {/* Main Content */}
-                <main className="flex-1 bg-white p-4 md:p-6">
+                <main className="flex-1 bg-white p-4 md:p-6 pt-6 md:pt-0">
                     <Outlet />
                 </main>
             </div>

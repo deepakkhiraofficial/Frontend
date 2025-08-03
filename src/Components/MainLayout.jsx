@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
 import ShopFooter from "./ShopFooter";
@@ -6,11 +6,16 @@ import ShopFooter from "./ShopFooter";
 export default function MainLayout() {
     const { pathname } = useLocation();
 
-    // Show Navbar only on Home page
-    const showNavbar = pathname === "/";
+    const hideNavbarRoutes = ["/login", "/signup", "/admin", "/user"];
+    const hideFooterRoutes = ["/login", "/signup"];
 
-    // Hide Footer on login/signup
-    const hideFooter = pathname.startsWith("/login") || pathname.startsWith("/signup");
+    const showNavbar = useMemo(() =>
+        !hideNavbarRoutes.some(route => pathname.startsWith(route)),
+        [pathname]);
+
+    const showFooter = useMemo(() =>
+        !hideFooterRoutes.some(route => pathname.startsWith(route)),
+        [pathname]);
 
     return (
         <div className="min-h-screen flex flex-col">
@@ -20,7 +25,7 @@ export default function MainLayout() {
                 <Outlet />
             </main>
 
-            {!hideFooter && <ShopFooter />}
+            {showFooter && <ShopFooter />}
         </div>
     );
 }
